@@ -63,7 +63,7 @@ app.post(
 app.get("/:id", async (c) => {
   const db = await getDB(c);
   const id = c.req.param("id");
-  console.log("id", id);
+
   if (!id) {
     return c.json(
       {
@@ -95,5 +95,60 @@ app.get("/:id", async (c) => {
     200
   );
 });
+
+app.put(
+  "/:id",
+  zValidator("json", transactionSchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          message: fromError(result.error).toString(),
+        },
+        400
+      );
+    }
+  }),
+  async (c) => {
+    const db = await getDB(c);
+    const id = c.req.param("id");
+    const tx = c.req.valid("json");
+
+    const existingTx = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, +id));
+
+    if (!existingTx.length) {
+      return c.json(
+        {
+          message: "Transaction not found",
+        },
+        404
+      );
+    }
+
+    const result = await db
+      .update(transactions)
+      .set(tx)
+      .where(eq(transactions.id, +id))
+      .returning();
+
+    if (!result.length) {
+      return c.json(
+        {
+          message: "Error updating transaction",
+        },
+        500
+      );
+    }
+
+    return c.json(
+      {
+        ...result[0],
+      },
+      200
+    );
+  }
+);
 
 export default app;
