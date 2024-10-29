@@ -8,7 +8,7 @@ import { getDB } from "@/db/utils";
 import { transactions } from "@/db/schema";
 
 const transactionSchema = z.object({
-  date: z.date(),
+  date: z.string().datetime(),
   amount: z.number(),
   type: z.enum(["Income", "Expense", "Other"]),
   category: z.string(),
@@ -34,12 +34,14 @@ app.post(
 
     const db = await getDB(c);
 
-    const result = await db.insert(transactions).values({
-      ...tx,
-      date: tx.date.toISOString(),
-    });
+    const result = await db
+      .insert(transactions)
+      .values({
+        ...tx,
+      })
+      .returning();
 
-    if (!result.success) {
+    if (!result.length) {
       return c.json(
         {
           message: "Error creating transaction",
@@ -50,7 +52,7 @@ app.post(
 
     return c.json(
       {
-        message: "Transaction created",
+        ...result[0],
       },
       201
     );
