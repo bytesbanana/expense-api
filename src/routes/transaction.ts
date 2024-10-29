@@ -6,6 +6,7 @@ import { fromError } from "zod-validation-error";
 import { getDB } from "@/db/utils";
 
 import { transactions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 const transactionSchema = z.object({
   date: z.string().datetime(),
@@ -58,5 +59,41 @@ app.post(
     );
   }
 );
+
+app.get("/:id", async (c) => {
+  const db = await getDB(c);
+  const id = c.req.param("id");
+  console.log("id", id);
+  if (!id) {
+    return c.json(
+      {
+        message: "Invalid request",
+      },
+      400
+    );
+  }
+
+  const result = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.id, +id))
+    .limit(1);
+
+  if (!result.length) {
+    return c.json(
+      {
+        message: "Transaction not found",
+      },
+      404
+    );
+  }
+
+  return c.json(
+    {
+      ...result[0],
+    },
+    200
+  );
+});
 
 export default app;
