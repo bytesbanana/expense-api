@@ -151,4 +151,51 @@ app.put(
   }
 );
 
+app.delete("/:id", async (c) => {
+  const db = await getDB(c);
+  const id = c.req.param("id");
+
+  if (!id) {
+    return c.json(
+      {
+        message: "Invalid request",
+      },
+      400
+    );
+  }
+
+  const existingTx = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.id, +id))
+    .limit(1);
+
+  if (!existingTx.length) {
+    return c.json(
+      {
+        message: "Transaction not found",
+      },
+      404
+    );
+  }
+
+  const result = await db.delete(transactions).where(eq(transactions.id, +id));
+
+  if (!result.success) {
+    return c.json(
+      {
+        message: "Error deleting transaction",
+      },
+      500
+    );
+  }
+
+  return c.json(
+    {
+      message: "Transaction deleted",
+    },
+    200
+  );
+});
+
 export default app;
