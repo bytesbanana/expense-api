@@ -15,6 +15,13 @@
       "when": 1730386083445,
       "tag": "0001_mysterious_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1730396056418,
+      "tag": "0002_naive_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

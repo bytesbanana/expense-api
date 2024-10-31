@@ -1,12 +1,12 @@
 import { Hono } from "hono";
-import { Bindings } from "@/types";
+import { Env } from "@/types";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { fromError } from "zod-validation-error";
 import { getDB } from "@/db/utils";
 
 import { transactions } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const transactionSchema = z.object({
   date: z.string().datetime(),
@@ -16,7 +16,7 @@ const transactionSchema = z.object({
   description: z.string().optional().default(""),
 });
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<Env>();
 
 app.post(
   "/",
@@ -31,6 +31,7 @@ app.post(
     }
   }),
   async (c) => {
+    const userId = c.var.userId;
     const tx = c.req.valid("json");
 
     const db = await getDB(c);
@@ -39,6 +40,7 @@ app.post(
       .insert(transactions)
       .values({
         ...tx,
+        userId: userId,
       })
       .returning();
 
@@ -73,10 +75,11 @@ app.get("/:id", async (c) => {
     );
   }
 
+  const userId = c.get("userId");
   const result = await db
     .select()
     .from(transactions)
-    .where(eq(transactions.id, +id))
+    .where(and(eq(transactions.id, +id), eq(transactions.userId, userId)))
     .limit(1);
 
   if (!result.length) {
@@ -113,10 +116,11 @@ app.put(
     const id = c.req.param("id");
     const tx = c.req.valid("json");
 
+    const userId = c.get("userId");
     const existingTx = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.id, +id));
+      .where(and(eq(transactions.id, +id), eq(transactions.userId, userId)));
 
     if (!existingTx.length) {
       return c.json(
@@ -164,10 +168,11 @@ app.delete("/:id", async (c) => {
     );
   }
 
+  const userId = c.get("userId");
   const existingTx = await db
     .select()
     .from(transactions)
-    .where(eq(transactions.id, +id))
+    .where(and(eq(transactions.id, +id), eq(transactions.userId, userId)))
     .limit(1);
 
   if (!existingTx.length) {
