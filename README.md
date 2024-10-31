@@ -4,25 +4,33 @@ This is a Cloudflare Workers API for managing expenses.
 
 ## Endpoints
 
-### GET /expenses
+### GET /transactions
 
-Returns a list of all expenses.
+Returns a list of all transactions.
 
-### POST /expenses
+### POST /transactions
 
-Creates a new expense.
+Creates a new transaction.
 
-### GET /expenses/:id
+### GET /transactions/:id
 
-Returns a single expense by ID.
+Returns a single transaction by ID.
 
-### PUT /expenses/:id
+### PUT /transactions/:id
 
-Updates a single expense by ID.
+Updates a single transaction by ID.
 
-### DELETE /expenses/:id
+### DELETE /transactions/:id
 
-Deletes a single expense by ID.
+Deletes a single transaction by ID.
+
+### POST /auth/signup
+
+Registers a new user with email and password.
+
+### POST /auth/signin
+
+Authenticates a user and returns a token.
 
 ## Development
 
